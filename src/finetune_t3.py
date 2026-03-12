@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import logging
 import os
 import json
@@ -83,7 +83,7 @@ class ModelArguments:
 @dataclass
 class DataArguments:
     language: Optional[str] = field(
-        default="en",
+        default="ar",
         metadata={"help": "State target language code: 'en' , 'tr' ..."},
     )
     dataset_dir: Optional[str] = field(
@@ -695,11 +695,31 @@ def main():
             dataset_root = metadata_path.parent
             with open(metadata_path, "r", encoding="utf-8") as f:
                 for line_idx, line in enumerate(f):
-                    parts = line.strip().split("|")
-                    if len(parts) != 2:
-                        parts = line.strip().split("\t")
-                    if len(parts) == 2:
-                        audio_file, text = parts
+                    stripped_line = line.strip()
+                    if not stripped_line:
+                        continue
+
+                    audio_file = None
+                    text = None
+
+                    if metadata_path.suffix.lower() in {".jsonl", ".json"}:
+                        try:
+                            entry = json.loads(stripped_line)
+                            audio_file = entry.get("audio") or entry.get("audio_file")
+                            text = entry.get("text")
+                        except json.JSONDecodeError:
+                            logger.warning(
+                                f"Skipping malformed JSON metadata line {line_idx + 1}: {stripped_line}"
+                            )
+                            continue
+                    else:
+                        parts = stripped_line.split("|")
+                        if len(parts) != 2:
+                            parts = stripped_line.split("\t")
+                        if len(parts) == 2:
+                            audio_file, text = parts
+
+                    if audio_file and text is not None:
                         audio_path = (
                             Path(audio_file)
                             if Path(audio_file).is_absolute()
@@ -709,11 +729,11 @@ def main():
                             all_files.append({"audio": str(audio_path), "text": text})
                         else:
                             logger.warning(
-                                f"Audio file not found: {audio_path} (line {line_idx+1}). Skipping."
+                                f"Audio file not found: {audio_path} (line {line_idx + 1}). Skipping."
                             )
                     else:
                         logger.warning(
-                            f"Skipping malformed line in metadata (line {line_idx+1}): {line.strip()}"
+                            f"Skipping malformed line in metadata (line {line_idx + 1}): {stripped_line}"
                         )
         elif data_args.dataset_dir:
             dataset_path = Path(data_args.dataset_dir)
@@ -739,7 +759,10 @@ def main():
                 split_idx = 1  # Ensure at least one for train if eval gets most
             if split_idx == len(all_files):
                 split_idx = len(all_files) - 1  # Ensure at least one for eval
-            train_hf_dataset, eval_hf_dataset = all_files[:split_idx], all_files[split_idx:]  # type: ignore
+            train_hf_dataset, eval_hf_dataset = (
+                all_files[:split_idx],
+                all_files[split_idx:],
+            )  # type: ignore
         is_hf_format_train, is_hf_format_eval = False, False
 
     train_dataset = SpeechFineTuningDataset(
