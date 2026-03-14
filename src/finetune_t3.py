@@ -564,6 +564,14 @@ def main():
     logger.info("Training/evaluation parameters %s", training_args)
     logger.info("Model parameters %s", model_args)
     logger.info("Data parameters %s", data_args)
+
+    if training_args.resume_from_checkpoint:
+        # PyTorch 2.6 defaults torch.load() to weights_only=True, which breaks
+        # Trainer RNG-state resume files created by earlier runs.
+        os.environ.setdefault("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD", "1")
+        logger.info(
+            "Enabled TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1 for checkpoint resume compatibility."
+        )
     set_seed(training_args.seed)
 
     logger.info("Loading ChatterboxTTS model...")
