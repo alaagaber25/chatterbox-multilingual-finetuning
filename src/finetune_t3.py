@@ -31,12 +31,15 @@ from chatterbox.models.t3.t3 import T3, T3Cond
 from chatterbox.models.t3.modules.t3_config import T3Config
 from chatterbox.models.s3tokenizer import S3_SR, SPEECH_VOCAB_SIZE
 from chatterbox.models.s3gen import S3GEN_SR
+from transformers_wandb_patch import patch_wandb_on_train_end_eval_strategy
 
 # from chatterbox.utils.t3data_arguments import DataArguments
 # from chatterbox.utils.t3dataset import SpeechFineTuningDataset
 
 
 logger = logging.getLogger(__name__)
+
+patch_wandb_on_train_end_eval_strategy()
 
 
 # --- Custom Training Arguments ---

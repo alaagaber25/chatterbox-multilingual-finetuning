@@ -33,8 +33,11 @@ from chatterbox.models.s3gen.s3gen import S3Token2Mel, mel_spectrogram # S3GEN_S
 from chatterbox.models.s3tokenizer import S3Tokenizer, S3_SR as S3_TOKENIZER_SR # S3Tokenizer operates at 16kHz
 from chatterbox.models.s3gen.flow import CausalMaskedDiffWithXvec # The actual module we want to finetune
 from chatterbox.models.s3gen.xvector import CAMPPlus # Speaker encoder used by S3Gen
+from transformers_wandb_patch import patch_wandb_on_train_end_eval_strategy
 
 logger = logging.getLogger(__name__)
+
+patch_wandb_on_train_end_eval_strategy()
 
 # --- Training Arguments (can reuse CustomTrainingArguments) ---
 @dataclass
