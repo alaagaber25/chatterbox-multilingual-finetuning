@@ -31,12 +31,12 @@ logger = logging.getLogger(__name__)
 
 def _ensure_BOT_EOT(text_tokens: Tensor, hp):
     B = text_tokens.size(0)
-    assert (
-        text_tokens == hp.start_text_token
-    ).int().sum() >= B, "missing start_text_token"
-    assert (
-        text_tokens == hp.stop_text_token
-    ).int().sum() >= B, "missing stop_text_token"
+    assert (text_tokens == hp.start_text_token).int().sum() >= B, (
+        "missing start_text_token"
+    )
+    assert (text_tokens == hp.stop_text_token).int().sum() >= B, (
+        "missing stop_text_token"
+    )
 
 
 class T3(nn.Module):
@@ -427,7 +427,9 @@ class T3(nn.Module):
 
             # Check for EOS token.
             if next_token.view(-1) == self.hp.stop_speech_token:
-                logger.info(f"✅ EOS token detected! Stopping generation at step {i+1}")
+                logger.info(
+                    f"✅ EOS token detected! Stopping generation at step {i + 1}"
+                )
                 break
 
             # Get embedding for the new token.

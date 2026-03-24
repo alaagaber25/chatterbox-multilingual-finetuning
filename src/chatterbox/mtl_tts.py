@@ -1,4 +1,4 @@
-﻿from dataclasses import dataclass
+from dataclasses import dataclass
 from pathlib import Path
 import os
 
@@ -148,7 +148,11 @@ class ChatterboxMultilingualTTS:
         self.tokenizer = tokenizer
         self.device = device
         self.conds = conds
-        self.watermarker = perth.PerthImplicitWatermarker() if callable(getattr(perth, "PerthImplicitWatermarker", None)) else None
+        self.watermarker = (
+            perth.PerthImplicitWatermarker()
+            if callable(getattr(perth, "PerthImplicitWatermarker", None))
+            else None
+        )
 
     @classmethod
     def get_supported_languages(cls):
@@ -160,7 +164,9 @@ class ChatterboxMultilingualTTS:
         ckpt_dir = Path(ckpt_dir)
 
         ve = VoiceEncoder()
-        ve.load_state_dict(torch.load(ckpt_dir / "ve.pt", map_location=device, weights_only=True))
+        ve.load_state_dict(
+            torch.load(ckpt_dir / "ve.pt", map_location=device, weights_only=True)
+        )
         ve.to(device).eval()
 
         t3 = T3(T3Config.multilingual())
@@ -171,7 +177,9 @@ class ChatterboxMultilingualTTS:
         t3.to(device).eval()
 
         s3gen = S3Gen()
-        s3gen.load_state_dict(torch.load(ckpt_dir / "s3gen.pt", map_location=device, weights_only=True))
+        s3gen.load_state_dict(
+            torch.load(ckpt_dir / "s3gen.pt", map_location=device, weights_only=True)
+        )
         s3gen.to(device).eval()
 
         tokenizer = MTLTokenizer(str(ckpt_dir / "grapheme_mtl_merged_expanded_v1.json"))
@@ -225,7 +233,9 @@ class ChatterboxMultilingualTTS:
         ckpt_dir = Path(ckpt_dir)
 
         ve = VoiceEncoder()
-        ve.load_state_dict(torch.load(ckpt_dir / "ve.pt", map_location=device, weights_only=True))
+        ve.load_state_dict(
+            torch.load(ckpt_dir / "ve.pt", map_location=device, weights_only=True)
+        )
         ve.to(device).eval()
 
         t3 = T3(T3Config.multilingual())
@@ -236,7 +246,9 @@ class ChatterboxMultilingualTTS:
         t3.to(device).eval()
 
         s3gen = S3Gen()
-        s3gen.load_state_dict(torch.load(ckpt_dir / "s3gen.pt", map_location=device, weights_only=True))
+        s3gen.load_state_dict(
+            torch.load(ckpt_dir / "s3gen.pt", map_location=device, weights_only=True)
+        )
         s3gen.to(device).eval()
 
         tokenizer = MTLTokenizer(str(ckpt_dir / "grapheme_mtl_merged_expanded_v1.json"))
@@ -303,9 +315,9 @@ class ChatterboxMultilingualTTS:
         if audio_prompt_path:
             self.prepare_conditionals(audio_prompt_path, exaggeration=exaggeration)
         else:
-            assert (
-                self.conds is not None
-            ), "Please `prepare_conditionals` first or specify `audio_prompt_path`"
+            assert self.conds is not None, (
+                "Please `prepare_conditionals` first or specify `audio_prompt_path`"
+            )
 
         # Update exaggeration if needed
         if float(exaggeration) != float(self.conds.t3.emotion_adv[0, 0, 0].item()):
@@ -355,5 +367,3 @@ class ChatterboxMultilingualTTS:
             wav = wav.squeeze(0).detach().cpu().numpy()
             # wav = self.watermarker.apply_watermark(wav, sample_rate=self.sr)
         return torch.from_numpy(wav).unsqueeze(0)
-
-
